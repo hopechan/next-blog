@@ -1,5 +1,5 @@
 import Link, { LinkProps } from "next/link";
-import React from "react";
+import Image from "next/image";
 
 
 const CustomLink = (props: React.ComponentProps<"a"> & LinkProps) =>{
@@ -19,7 +19,7 @@ const CustomLink = (props: React.ComponentProps<"a"> & LinkProps) =>{
 
 const MDXComponents = {
   a: CustomLink,
-  CustomLink
+  Image
 }
 
 export default MDXComponents;
