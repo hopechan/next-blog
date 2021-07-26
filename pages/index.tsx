@@ -1,6 +1,8 @@
 import Head from 'next/head';
 import { NextPage, GetStaticProps } from 'next';
 
+import Link from '../components/Link';
+
 import { getAllFilesFrontMatter } from '../lib/mdx';
 
 type Props = {
@@ -20,11 +22,15 @@ const Home: NextPage<Props> = ({posts}) =>{
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <main className="py-8">
+      <main className="py-8 space-y-4">
         {posts.map((post) =>(
-          <article key={post.slug}>
+          <Link 
+            href={`/blog/${post.slug}`} 
+            key={post.slug} 
+            className='block rounded border border-gray-200 p-4 hover:bg-gray-300'
+          >
             <h3>{post.title}</h3>
-          </article>
+          </Link>
         ))}
       </main>
 
