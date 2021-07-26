@@ -1,3 +1,4 @@
+import * as React from 'react';
 import Head from 'next/head';
 import { NextPage, GetStaticProps } from 'next';
 
@@ -14,6 +15,11 @@ type Props = {
 }
 
 const Home: NextPage<Props> = ({posts}) =>{
+  const [search, setSearch] = React.useState('');
+  const filteredPosts = posts.filter((frontMatter) =>
+    frontMatter.title.toLowerCase().includes(search.toLowerCase())
+  );
+
   return (
     <div className="container px-5 mx-auto">
       <Head>
@@ -23,7 +29,31 @@ const Home: NextPage<Props> = ({posts}) =>{
       </Head>
 
       <main className="py-8 space-y-4">
-        {posts.map((post) =>(
+        <div className='relative w-full mb-4'>
+          <input
+            aria-labe='Buscar articulos' 
+            type="text"
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder='Buscar articulos'
+            className='px-4 py-2 border border-gray-300
+            focus:ring-blue-500 focus:border-blue-500 block w-full rounded-md bg-white text-gray-900 '
+          />
+          <svg
+            className='absolute right-3 top-3 h-5 w-5 text-gray-400'
+            xmlns='http://www.w3.org/2000/svg'
+            fill='none'
+            viewBox='0 0 24 24'
+            stroke='currentColor'
+          >
+            <path 
+              strokeLinecap='round'
+              strokeLinejoin='round'
+              strokeWidth={2}
+              d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z'
+            />
+          </svg>
+        </div>
+        {filteredPosts.map((post) =>(
           <Link 
             href={`/blog/${post.slug}`} 
             key={post.slug} 
