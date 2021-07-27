@@ -1,6 +1,13 @@
 import Link from '../components/Link'
+import { useState } from 'react';
 
 export const Navbar = () =>{
+  const [active, setActive] = useState(false);
+
+  const handleClick = () => {
+    setActive(!active);
+  }
+
   return (
     <>
       <nav className='flex items-center flex-wrap bg-green-300 p-3 mb-4'>
@@ -23,7 +30,8 @@ export const Navbar = () =>{
             Hopechan
           </span>
         </Link>
-        <button 
+        <button
+          onClick={handleClick}
           className='
             inline-flex 
             p-3 
@@ -48,6 +56,21 @@ export const Navbar = () =>{
             />
           </svg>
         </button>
+        {/*Note that in this div we will use a ternary operator to decide whether or not to display the content of the div  */}
+        <div
+          className={`${
+            active ? '' : 'hidden'
+          }   w-full lg:inline-flex lg:flex-grow lg:w-auto`}
+        >
+          <div className='lg:inline-flex lg:flex-row lg:ml-auto lg:w-auto w-full lg:items-center items-start  flex flex-col lg:h-auto'>
+            <Link href='/' className='lg:inline-flex lg:w-auto w-full px-3 py-2 rounded text-white font-bold items-center justify-center hover:bg-green-600 hover:text-white'>
+              Blog
+            </Link>
+            <Link href='/' className='lg:inline-flex lg:w-auto w-full px-3 py-2 rounded text-white font-bold items-center justify-center hover:bg-green-600 hover:text-white'>
+              Contacto
+            </Link>
+          </div>
+        </div>
       </nav>
     </>
   );
