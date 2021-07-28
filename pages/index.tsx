@@ -4,6 +4,7 @@ import { NextPage, GetStaticProps } from 'next';
 
 import Link from '../components/Link';
 import Navbar from '../components/Navbar';
+import Card from '../components/Card';
 
 import { getAllFilesFrontMatter } from '../lib/mdx';
 
@@ -12,6 +13,7 @@ type Props = {
     title: string
     slug: string
     image: string
+    tags: string
   }[] // los corchetes indican que es un array
 }
 
@@ -29,13 +31,13 @@ const Home: NextPage<Props> = ({posts}) =>{
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <main className="">
+      <main className='bg-gray-200 bg-opacity-25'>
         <Navbar/>
         <div className='container px-5 mx-auto'>
           <div className='relative w-full mb-4'>
             <input
-              aria-labe='Buscar articulos' 
-              type="text"
+              aria-label='Buscar articulos' 
+              type='text'
               onChange={(e) => setSearch(e.target.value)}
               placeholder='Buscar articulos'
               className='px-4 py-2 border border-gray-300
@@ -56,16 +58,15 @@ const Home: NextPage<Props> = ({posts}) =>{
               />
             </svg>
           </div>
-          {filteredPosts.map((post) =>(
-            <Link 
-              href={`/blog/${post.slug}`} 
-              key={post.slug} 
-              className='block rounded border border-gray-200 p-4 hover:bg-gray-300'
-            >
-              <h3>{post.title}</h3>
-            </Link>
-          ))}
+          <div className='grid md:grid-cols-3 gap-4'>
+            {filteredPosts.map((post) =>(
+              <Card 
+                post={post}
+                key={post.slug} 
+              />
+            ))}
           </div>
+        </div>
       </main>
 
       <footer>
