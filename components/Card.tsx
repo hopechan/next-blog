@@ -34,8 +34,8 @@ export const Card = ({post}: CardProps) =>{
       </div>
       <div className='px-6 pt-4 pb-2'>
         {
-          tags?.map(tag =>(
-            <span className='inline-block bg-green-300 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2 mb-2'>{`#${tag}`}</span>
+          tags?.map((tag, i) =>(
+            <span className='inline-block bg-green-300 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2 mb-2' key={i}>{`#${tag}`}</span>
           ))
         }
       </div>
