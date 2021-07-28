@@ -1,0 +1,61 @@
+---
+title: "Ventanas Deslizantes"
+image: "https://picsum.photos/1200/630"
+tags: "Comunicaciones"
+---
+
+# Ventanas deslizantes
+
+### Piggybacking o superposicion
+
+Esta técnica se usa cuando llega una trama de datos, en lugar de enviar inmediatamente una trama de control independiente, el receptor se espera hasta que la capa de red le pasa el siguiente paquete. La confirmación de recepción se adjunta a la trama de datos de salida (usando el campo `ack` del encabezado de la trama). Así la confirmación de recepción viaja gratuitamente en la siguiente trama de datos de salida.
+
+**Ventajas**
+
+- Se tiene un mejor aprovechamiento del ancho de banda disponible del canal.
+- El campo `ack` del encabezado de la trama ocupa solo unos cuantos bits, mientras que una trama aparte requeriría de un encabezado, la confirmación de recepción y una suma de verificación
+- El envío de menos tramas implica menos interrupciones de ”ha llegado trama” y tal vez menos buffer en el receptor, dependiendo de la manera en que este organizado el software del receptor.
+
+**Desventajas**
+
+- Introduce una complicación inexistente en las confirmaciones de recepción independientes.
+- Si la capa de enlace de datos espera mas tiempo del que tarda en terminar el temporizador del emisor, la trama sera retransmitida, frustrando el propósito de enviar confirmaciones de recepción.
+
+*La solución a esta ultima desventaja es que si aparece rápidamente un nuevo paquete a enviar, la confirmación de recepción se superpone a el; si no ha llegado ningún paquete nuevo al final de este periodo, la capa de enlace de datos manda una trama de confirmación de recepción independiente.*
+
+### Protocolos de ventanas deslizantes
+
+Estos protocolos son bidireccionales, cada uno posee una eficiencia, complejidad y buffer diferente. En ellos, al igual que en todos los protocolos de ventana deslizante, cada trama de salida contiene un numero de secuencia, que va desde `0` hasta algun numero maximo. Por lo general, este es $`2^n -1`$, por lo que el numero de secuencia encaja perfectamente en un campo de `n` bits.
+
+**Elementos basicos de los protocolos de ventanas deslizantes**
+
+- En cualquier instante, el emisor mantiene un grupo de números de secuencia que corresponde a las tramas que tiene permitido enviar. Se dice que estas tramas caen dentro de la ventana emisora.
+- El receptor mantiene una ventana receptora correspondiente al grupo de tramas que tiene permitido aceptar.
+- La ventana del emisor y la del receptor no necesitan tener los mismos limites inferior y superior, ni siquiera el mismo tamanio. En algunos protocolos las ventanas son de tamanio fijo, pero en otros pueden crecer y disminuir a medida que se envian y reciben las tramas.
+- Aunque estos protocolos dan a la capa de enlace de datos mayor libertad en cuanto al orden en que puede enviar y recibir tramas, se conserva el requisito de que el protocolo debe entregar los paquetes a la capa de red del destino en el mismo orden en que se pasaron a la capa de enlace de datos de la maquina emisora.
+- Los numeros de secuencia en la ventana del emisor representan tramas enviadas o que pueden ser enviadas, pero cuya recepcion aun no se ha confirmado. Cuando llega un paquete nuevo de la capa de red se le da el siguiente numero secuencial mayor, y el extremo superior de la ventana avanza en uno. Al llegar una confirmacion de recepcion, el extremo inferior avanza en uno. De esta manera, la ventana mantiene continuamente una lista de tramas sin confirmacion de recepcion.
+
+![Ventanas%20deslizantes%20c73493f07cea45f59b0b595fcbbdeaeb/Untitled.png](Ventanas%20deslizantes%20c73493f07cea45f59b0b595fcbbdeaeb/Untitled.png)
+
+Ventana deslizante de tamanio 1, con un numero de secuencia de 3 bits. (a) Al inicio, (b) Tras la transmision de la primera trama. (c) Tras la recepcion de la primera trama. (d) Tras recibir la primera confirmacion de recepcion.
+
+- Dado que las tramas que estan en la ventana del emisor pueden perderse o danarse en transito, el emisor debe mantener todas estas tramas en su memoria para su posible retransmision. Por lo tanto, si el tamano maximo de la ventana es `n`, el emisor necesita `n` buferes para contener las tramas sin confirmacion de recepcion. Si la ventana llega a crecer a su tamano maximo, la capa de enlace de datos emisora debera hacer que la capa de red se detenga hasta que se libere otro bufer.
+- La ventana de la capa de enlace de datos receptora corresponde a las tramas que puede aceptar. Toda trama que caiga fuera de la ventana se descartara sin comentarios. Cuando se recibe la trama cuyo numero de secuencia es igual al extremo inferior de la ventana, se pasa a la capa de red, se genera una confirmacion de recepcion y se avanza la ventana en uno. A diferencia de la ventana del emisor, la ventana del receptor conserva siempre el mismo tamano inicial.
+- Un tamano de ventana de 1 significa que la capa de enlace de datos solo acepta tramas en orden, pero con ventanas mas grandes esto no es asi. La capa de red en contraste, siempre recibe los datos en el orden correcto, sin importar el tamano de la ventana de la capa de enlace de datos.
+
+**Protocolo de ventana deslizante de un bit**
+
+Este protocolo utiliza parada y espera, ya que el emisor envia una trama y espera su confirmacion de recepcion antes de transmitir la siguiente. Este protocolo define unas variables:
+
+- `Next_frame_to_send` : indica que trama esta tratando de enviar el emisor.
+- `frame_expected` : indica que trama espera el receptor.
+
+En ambos casos, 0 y 1 son las unicas posibilidades. Normalmente, una de las dos capas de enlace de datos es la que comienza a transmitir la primera trama. Es decir, **solo uno de los programas de capa de enlace de datos debe contener las llamadas de procedimiento to `physical_layer` y `start_timer` fuera del ciclo principal**. De lo contrario puede surgir una situacion peculiar que termina duplicando paquetes en la mitad de las tramas **aunque no existan errores de transmision**. Este protocolo funciona de la siguiente manera:
+
+1. La maquina que arranca obtiene el primer paquete de su capa de red, construye una trama y la envia.
+2. Al llegar esta (o cualquier) trama, la capa de enlace de datos receptora la revisa para saber si es un duplicado.
+3. Si la trama es la esperada, se pasa a la capa de red y la ventana del receptor se corre hacia arriba.
+4. El campo de confirmacion de recepcion contiene el numero de la ultima trama recibida sin error
+    - Si este numero concuerda con el de secuencia de la trama que esta tratando de enviar el emisor, este sabe que ha terminado con la trama almacenada en el bufer y que puede obtener el siguiente paquete de su capa de red.
+    - Si el numero de secuencia no concuerda, debe continuar intentando enviar la misma trama.
+5. Por cada trama que se recibe, se devuelve una.
